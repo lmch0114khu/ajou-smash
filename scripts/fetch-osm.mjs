@@ -119,12 +119,14 @@ function stitch(parts) {
   return rings;
 }
 
-// ponytail: 멀티폴리곤의 inner(구멍)는 무시하고 outer만 쓴다. 구멍 있는 건물이 나오면 inner 처리 추가.
+// 멀티폴리곤의 outer 고리들. inner(구멍)는 건물만 innerRings로 따로 받는다(중정).
+// ponytail: 잔디·숲 같은 면의 구멍은 무시한다. 구멍 난 면이 어색하면 면에도 inner 처리 추가.
 function outerRings(el) {
   if (el.type === 'way') return el.geometry ? [el.geometry] : [];
   const outers = el.members.filter((m) => m.type === 'way' && m.role !== 'inner' && m.geometry);
   return stitch(outers.map((m) => m.geometry));
 }
+const innerRings = (el) => (el.type === 'way' ? [] : stitch(el.members.filter((m) => m.type === 'way' && m.role === 'inner' && m.geometry).map((m) => m.geometry)));
 
 // 짝홀 규칙이라 경계의 inner 고리(캠퍼스 밖 구멍)도 그대로 처리된다.
 function inside([x, z], rings) {
@@ -232,12 +234,14 @@ for (const el of raw.elements) {
     const outline = ring.map(toLocal).slice(0, -1); // 닫는 점 제거
     if (!inside(centroid(outline), boundary) && !EXTRA.includes(id)) continue;
     const floors = parseInt(t['building:levels'], 10);
+    const holes = innerRings(el).map((r) => r.map(toLocal).slice(0, -1)); // 중정
     buildings.push({
       id,
       name: t['name:ko'] || t.name || oldNames[id] || '',
       floors: Number.isFinite(floors) ? floors : null,
       osm: t.building,
       outline,
+      ...(holes.length && { holes }),
     });
   } else if (t.highway && el.type === 'way' && t.area !== 'yes') {
     if (['proposed', 'construction', 'platform'].includes(t.highway)) continue;

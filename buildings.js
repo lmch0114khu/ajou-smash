@@ -9,9 +9,9 @@ const DEFAULT_FLOORS = 2; // overrides.json에도 OSM에도 층수가 없을 때
 // 블록 옆면 무늬 (텍스처 아틀라스의 칸 번호)
 const TILE = {
   WINDOW: 0, PILASTER: 1, ARCH: 2, CORNICE: 3, PLAIN: 4, CURTAIN: 5, COLUMN: 6, DOOR: 7, CLOCK: 8,
-  BALUSTRADE: 9, BASE: 10, WINDOW_BLUE: 11, RIBBON: 12, BRICK: 13, MIES: 14, BAND: 15,
+  BALUSTRADE: 9, BASE: 10, WINDOW_BLUE: 11, RIBBON: 12, BRICK: 13, MIES: 14, BAND: 15, GLASS: 16, LOGGIA: 17,
 };
-const TILE_COUNT = 16;
+const TILE_COUNT = 18;
 
 // 외관 프리셋. 건물 → 프리셋은 overrides.json의 styles(건물 이름 → 키), 없으면 defaultStyle(이름 없는 building=yes는 small).
 // 아주대 블록 위쪽 설명의 건물 이름은 참고 저장소(경희대 국제캠퍼스) 기준.
@@ -75,22 +75,33 @@ const STYLES = {
   },
 
   // --- 아주대 (나무위키 「아주대학교/시설」 사진 기준). 서울건축의 붉은 벽돌 시리즈: 양끝 벽돌 벽 + 흰 띠창 ---
-  mies: MIES, // 중앙도서관: 일리노이 공대 풍. 검은 철골 격자, 위는 유리 아래는 벽돌, 양끝 벽돌 벽
+  // 입면 옵션: baseWall 1층 벽색, strips 벽면을 따라 every칸마다 다른 무늬(세로 띠), scatter 창을 4칸에 1칸만, pilotis 1층 정면 기둥 회랑
+  mies: MIES, // 중앙도서관: 일리노이 공대 풍. 흰 층 보, 검은 멀리언, 위는 유리 아래는 벽돌, 양끝 벽돌 벽
   miesGray: { ...MIES, wall: '#7c7f82', trim: '#7c7f82' }, // 성호관: 같은 디자인을 2007년에 회색으로 칠함
-  whiteBandBrick: { ...MODERN, wall: '#eeede8', roof: '#bdbab4', mid: TILE.RIBBON, trim: BRICK, trimTile: TILE.BRICK, trimEnds: true }, // 율곡관·다산관
-  brickBand: { ...MODERN, wall: BRICK, roof: '#b0a596', base: TILE.BRICK, mid: TILE.BAND, top: TILE.BRICK }, // 용지관·화홍관·광교관·기숙사식당: 벽돌 + 층마다 흰 띠
-  brickTower: { ...MODERN, wall: '#9b4a38', roof: '#a49b91', base: TILE.WINDOW }, // 국제학사·일신관: 벽돌 고층 + 큰 창
-  brickEndsBlue: { ...MODERN, wall: '#efefeb', mid: TILE.WINDOW_BLUE, trim: BRICK, trimTile: TILE.BRICK, trimEnds: true }, // 산학협력원
-  creamRed: { ...MODERN, wall: '#ece5d6', mid: TILE.RIBBON, trim: '#b4533f', trimTile: TILE.PLAIN }, // 서관: 크림 벽 + 붉은 모서리 기둥
+  loggiaBrick: { ...MODERN, wall: '#efeee9', roof: '#bdbab4', mid: TILE.LOGGIA, trim: BRICK, trimTile: TILE.BRICK, trimEnds: true }, // 다산관: 흰 콘크리트 틀에 깊은 창 + 양끝 벽돌
+  brickBand: { ...MODERN, wall: BRICK, roof: '#b0a596', base: TILE.BRICK, mid: TILE.BAND, top: TILE.BRICK }, // 율곡관·용지관·화홍관·광교관·기숙사식당: 벽돌 + 층마다 흰 띠
+  brickTower: { ...MODERN, wall: '#9b4a38', roof: '#a49b91', base: TILE.GLASS, strips: { every: 4, tile: TILE.GLASS } }, // 국제학사: 벽돌 + 군데군데 유리 띠, 1층 통유리
+  brickGlass: { ...MODERN, wall: '#a5503b', roof: '#a49b91', base: TILE.GLASS, strips: { every: 2, tile: TILE.GLASS } }, // 일신관: 벽돌 기둥과 유리 띠가 번갈아
+  brickEndsBlue: { ...MODERN, wall: '#efefeb', mid: TILE.WINDOW_BLUE, trim: BRICK, trimTile: TILE.BRICK, trimEnds: true, baseWall: BRICK }, // 산학협력원: 흰 격자 + 파란 창, 1층·양끝 벽돌
+  creamRed: { // 서관: 연분홍 벽, 3칸마다 기둥, 붉은 1층과 모서리
+    ...MODERN, wall: '#eadcd2', mid: TILE.RIBBON, trim: '#b4533f', trimTile: TILE.PLAIN, baseWall: '#b4533f',
+    strips: { every: 3, tile: TILE.PLAIN, wall: '#d9c2b6' },
+  },
   beigeLab: { ...MODERN, wall: '#dcd4c3', roof: '#b8b2a6', mid: TILE.RIBBON }, // 화공실험동·동관: 베이지 + 초록 띠창
-  beige: { ...MODERN, wall: '#e2dbca', roof: '#bdb6a8' }, // 학군단·약학관
-  grayGrid: { ...MODERN, wall: '#d8d8d4', roof: '#a9aaa7', base: TILE.WINDOW }, // 팔달관: 잿빛 격자 상자
-  glassBox: { ...MODERN, wall: '#7f8fb0', roof: '#55595f', base: TILE.CURTAIN, mid: TILE.CURTAIN, top: TILE.CURTAIN, rooftop: false }, // 에너지센터: 남색 유리 상자
+  beige: { ...MODERN, wall: '#e2dbca', roof: '#bdb6a8' }, // 학군단
+  beigeBrickBase: { ...MODERN, wall: '#dcd6ca', roof: '#bdb6a8', baseWall: BRICK }, // 약학관: 베이지 석재 + 벽돌 1층
+  whiteLoggia: { ...MODERN, wall: '#ecebe7', roof: '#a9aaa7', base: TILE.LOGGIA, mid: TILE.LOGGIA }, // 팔달관: 흰 층 슬래브 사이 깊은 창
+  glassBox: { ...MODERN, wall: '#7f8fb0', roof: '#55595f', base: TILE.CURTAIN, mid: TILE.CURTAIN, top: TILE.CURTAIN }, // 에너지센터: 남색 유리 상자 + 옥탑
   studentHall2: { ...MODERN, wall: '#dcdedd', base: TILE.CURTAIN, mid: TILE.WINDOW_BLUE }, // 제2학생회관
   stoneGlass: { ...MODERN, wall: '#d6d7d5', mid: TILE.WINDOW_BLUE, glassCore: true }, // 연암관: 회색 석재 + 유리 계단실
-  darkPanel: { ...MODERN, wall: '#8f969c', roof: '#787d82' }, // 홍재관: 진회색 금속 패널
+  grayPanelGlass: { ...MODERN, wall: '#c4c8cb', roof: '#9fa3a6', base: TILE.GLASS }, // 홍재관: 연회색 석재 패널 + 1층 통유리
   whiteBlue: { ...MODERN, wall: '#f0f0ec', mid: TILE.WINDOW_BLUE }, // 의생명과학관
-  oliveFrame: { ...MODERN, wall: '#bdb48e', roof: '#a9a59a', trim: '#efeee9', trimTile: TILE.PLAIN }, // 송재관: 흰 콘크리트 틀 + 올리브색 석재
+  whitePilotis: { ...MODERN, wall: '#f2f2ee', roof: '#c9c9c5', mid: TILE.WINDOW_BLUE, base: TILE.GLASS, pilotis: true }, // 원천관: 흰 벽 + 파란 창, 1층 기둥 회랑
+  whiteScatter: { ...MODERN, wall: '#f1f0ec', roof: '#c4c2bc', scatter: true }, // 원천정보관: 흰 벽에 흩어진 작은 창
+  brownBand: { ...MODERN, wall: '#a39c94', roof: '#8f8a84', mid: TILE.RIBBON, glassCore: true }, // 혜강관: 회갈색 수평 띠 + 띠창, 유리 이음부
+  stoneBlueBand: { ...MODERN, wall: '#d9d6cc', roof: '#bdb9b0', base: TILE.WINDOW_BLUE, mid: TILE.PLAIN }, // 임상수기센터: 창이 적은 석재 + 아래 파란 띠창
+  whiteGreenRoof: { ...MODERN, wall: '#f1f1ee', roof: '#86b36f' }, // 남제관: 흰 벽 + 초록 옥상
+  oliveFrame: { ...MODERN, wall: '#bdb48e', roof: '#a9a59a', mid: TILE.BAND, trim: '#efeee9', trimTile: TILE.PLAIN }, // 송재관: 올리브색 석재 + 흰 띠·모서리
   gym: { // 체육관: 유리 벽 + 긴 축을 따라 둥근 금속 지붕
     ...MODERN, wall: '#c8cdd2', roof: '#b4bac0', base: TILE.CURTAIN, mid: TILE.RIBBON, parapet: null, rooftop: false, noFloors: true,
     vault: '#b9bfc5',
@@ -279,7 +290,7 @@ function facadeAtlas() {
   tile(TILE.MIES, () => { // 검은 철골 격자, 위는 유리 아래는 벽(벽돌) (중앙도서관·성호관)
     for (let y = 40; y < 64; y += 8) rect('#dedede', 0, y, 64, 1); // 벽돌 줄눈
     glass(0, 4, 64, 32, '#2a3440', '#4c5c6c');
-    fixed('#2a2c2f', 0, 0, 64, 4); // 층 보
+    fixed('#e6e4de', 0, 0, 64, 4); // 흰 층 보
     fixed('#2a2c2f', 0, 36, 64, 3); // 창 아래 가로대
     fixed('#2a2c2f', 0, 0, 3, 64); // 기둥
     fixed('#2a2c2f', 31, 0, 2, 39); // 창 멀리언
@@ -289,6 +300,19 @@ function facadeAtlas() {
     glass(0, 14, 64, 26);
     for (let x = 0; x < 64; x += 16) fixed('#e8e6e0', x, 14, 2, 26); // 창살
     fixed('#ebe9e3', 0, 40, 64, 14); // 흰 띠
+  });
+  tile(TILE.GLASS, () => { // 벽 색과 상관없는 유리 커튼월 (벽돌 건물의 유리 띠·1층 통유리)
+    glass(0, 0, 64, 64, '#4a6478', '#7d9bb2');
+    fixed('#cfd4d8', 0, 0, 64, 2);
+    fixed('#cfd4d8', 0, 0, 2, 64);
+    fixed('#cfd4d8', 31, 0, 2, 64);
+    fixed('#cfd4d8', 0, 31, 64, 1);
+  });
+  tile(TILE.LOGGIA, () => { // 흰 콘크리트 틀(벽 색) 안쪽으로 깊이 들어간 창 (다산관·팔달관)
+    glass(8, 8, 48, 44, '#1f262e', '#36424f');
+    fixed('#141a20', 8, 8, 48, 4); // 위 그늘
+    fixed('#141a20', 8, 8, 3, 44); // 옆 그늘
+    rect('#e4e4e4', 0, 52, 64, 3); // 슬래브 아래 선
   });
 
   // 유리 자리만 알파를 낮춘다
@@ -344,18 +368,20 @@ export function createBuildings(campus, overrides, heightAt) {
     });
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const local = outline.map(([x, z]) => [(x - ox) * c + (z - oz) * s, -(x - ox) * s + (z - oz) * c]);
+    const toBuilding = ([x, z]) => [(x - ox) * c + (z - oz) * s, -(x - ox) * s + (z - oz) * c];
+    const local = outline.map(toBuilding);
+    const holes = (def.holes ?? []).map((h) => h.map(toBuilding)); // 중정 (ㅁ자 건물)
     const toWorld = (u, v) => [ox + u * c - v * s, oz + u * s + v * c];
     const U = (n) => (n + 0.5) * BLOCK; // 칸 번호 → 칸 중심의 로컬 좌표
     const groundAt = (i, j) => heightAt(...toWorld(U(i), U(j)));
 
-    // 블록 중심이 외곽선 안에 들어가는 칸 = 바닥 칸
+    // 블록 중심이 외곽선 안(중정 밖)에 들어가는 칸 = 바닥 칸
     const us = local.map((p) => p[0]);
     const vs = local.map((p) => p[1]);
     const keys = new Set();
     for (let i = Math.floor(Math.min(...us) / BLOCK); i < Math.max(...us) / BLOCK; i++) {
       for (let j = Math.floor(Math.min(...vs) / BLOCK); j < Math.max(...vs) / BLOCK; j++) {
-        if (inside([U(i), U(j)], [local])) keys.add(`${i},${j}`);
+        if (inside([U(i), U(j)], [local, ...holes])) keys.add(`${i},${j}`);
       }
     }
     if (!keys.size) { // 블록 하나보다 작은 건물도 최소 한 칸은 남긴다
@@ -634,6 +660,14 @@ export function createBuildings(campus, overrides, heightAt) {
           if (k >= g && !isTop && (st.trimEnds ? f.end : f.corner)) {
             if (st.trim) [tile, wall] = [st.trimTile ?? TILE.PLAIN, st.trim]; // 모서리(또는 양끝) 다른 재료
             else if (st.quoins) [tile, shade] = [TILE.PLAIN, 0.93]; // 모서리 마감석
+          } else if (k >= g && !isTop) {
+            if (k < g + LAYERS_PER_FLOOR && st.baseWall) wall = st.baseWall; // 1층만 다른 재료 (벽돌 1층 등)
+            const along = f.end ? f.j : f.i; // 벽면을 따라가는 칸 번호
+            if (k > g && st.strips && ((along % st.strips.every) + st.strips.every) % st.strips.every === 0) {
+              [tile, wall] = [st.strips.tile, st.strips.wall ?? wall]; // 세로 띠 (붉은 기둥, 유리 띠)
+            } else if (k > g && st.scatter && ((f.i * 73856093) ^ (f.j * 19349663) ^ (k * 83492791)) >>> 0 & 3) {
+              tile = TILE.PLAIN; // 창 4칸 중 1칸만: 흩어진 작은 창 (원천정보관)
+            }
           }
           if (k === g + (st.grand ? 1 : 0) && doorKeys.has(f.key)) tile = TILE.DOOR; // 기단이 있으면 한 층 위가 현관
           else if (k > g && !isTop && core && f.key === core.key) tile = TILE.CURTAIN; // 유리 계단실
@@ -674,6 +708,16 @@ export function createBuildings(campus, overrides, heightAt) {
             const y1 = bottom + levels[n + 1] * BLOCK;
             if (y1 - y0 > 1) add(U(f.i), U(f.j), (y0 + y1) / 2, TILE.PLAIN, '#d6d2ca', { sx: 0.35, sz: 0.35, sy: (y1 - y0) / BLOCK });
           }
+        }
+      }
+
+      if (st.pilotis) { // 1층 정면 전체에 기둥 회랑 + 그 위 차양 (원천관)
+        for (const t of run) {
+          const o = outer.get(t);
+          const [pi, pj] = outside(o);
+          const g = gk(o.ground);
+          if ((t - tc) % 2 === 0) column(pi, pj, bottom + g * BLOCK, LAYERS_PER_FLOOR, st.wall);
+          slab(pi, pj, bottom + (g + LAYERS_PER_FLOOR) * BLOCK - 0.25 * BLOCK, 0.25, TILE.PLAIN, st.wall);
         }
       }
 
